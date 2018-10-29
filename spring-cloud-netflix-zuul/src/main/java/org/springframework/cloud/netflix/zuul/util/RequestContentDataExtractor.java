@@ -29,6 +29,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequestWrapper;
 
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpEntity;
@@ -43,9 +44,15 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 public class RequestContentDataExtractor {
 	public static MultiValueMap<String, Object> extract(HttpServletRequest request) throws IOException {
-		return (request instanceof MultipartHttpServletRequest) ?
-				extractFromMultipartRequest((MultipartHttpServletRequest) request) :
-				extractFromRequest(request);
+		ServletRequest processedRequest = request;
+		if (request instanceof HttpServletRequestWrapper) {
+			processedRequest = ((HttpServletRequestWrapper) request).getRequest();
+		}
+
+		return (processedRequest instanceof MultipartHttpServletRequest) ?
+				extractFromMultipartRequest((MultipartHttpServletRequest) processedRequest) :
+				extractFromRequest((HttpServletRequest) processedRequest);
+		
 	}
 
 	private static MultiValueMap<String, Object> extractFromRequest(HttpServletRequest request) throws IOException {
